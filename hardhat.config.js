@@ -17,10 +17,10 @@ module.exports = {
     networks: {
         hardhat: {
             chainId: 31337,
-            forking: {
-                enabled: false,
-                url: MAINNET_RPC_URL,
-            },
+            // forking: {
+            //     enabled: false,
+            //     url: MAINNET_RPC_URL,
+            // },
         },
         goerli: {
             chainId: 5,
