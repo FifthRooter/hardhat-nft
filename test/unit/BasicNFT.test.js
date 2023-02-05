@@ -31,10 +31,12 @@ const {
           })
 
           describe("mintNFT", function () {
+              /* Tests to check whether NFT mints properly */
               beforeEach(async () => {
                   const txResponse = await basicNft.mintNFT()
                   await txResponse.wait(1)
               })
+              /* Tests whether the URI declared in the contract matches the URI of the newly minted NFT */
               it("checks if minted NFT's token URI matches declared URI", async function () {
                   const tokenUri = await basicNft.tokenURI(0)
                   const declaredTokenURI = await basicNft.TOKEN_URI()
