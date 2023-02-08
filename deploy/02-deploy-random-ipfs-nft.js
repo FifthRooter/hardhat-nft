@@ -19,11 +19,18 @@ const metadataTemplate = {
     ],
 }
 
+let tokenUris = [
+    "ipfs://QmaVkBn2tKmjbhphU7eyztbvSQU5EXDdqRyXZtRhSGgJGo",
+    "ipfs://QmYQC5aGZu2PTH8XzbJrbDnvhj3gVs7ya33H9mqUNvST3d",
+    "ipfs://QmZYmH5iDbD6v3U2ixoVAjioSzvWJszDzYdbeCLquGSpVm",
+]
+
+const FUND_AMOUNT = ethers.utils.parseEther("10") // 10 LINK
+
 module.exports = async function ({ getNamedAccounts, deployments }) {
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
-    let tokenUris
 
     let VRFCoordinatorV2Address
 
@@ -39,18 +46,35 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         const tx = await VRFCoordinatorV2Mock.createSubscription()
         const txReceipt = await tx.wait(1)
         subscriptionId = txReceipt.events[0].args.subId
+        await VRFCoordinatorV2Mock.fundSubscription(subscriptionId, FUND_AMOUNT)
     } else {
         VRFCoordinatorV2Address = networkConfig[chainId].VRFCoordinatorV2
         subscriptionId = networkConfig[chainId].subscription
     }
 
-    // const args = [
-    //     VRFCoordinatorV2Address,
-    //     subscriptionId,
-    //     networkConfig[chainId].gasLane,
-    //     networkConfig[chainId].callbackGasLimit,
-    //     networkConfig[chainId].mintFee,
-    // ]
+    const args = [
+        VRFCoordinatorV2Address,
+        subscriptionId,
+        networkConfig[chainId].gasLane,
+        networkConfig[chainId].callbackGasLimit,
+        tokenUris,
+        networkConfig[chainId].mintFee,
+    ]
+
+    const randomIpfsNft = await deploy("RandomIPFSNFT", {
+        from: deployer,
+        args: args,
+        log: true,
+        waitConfirmations: network.config.blockConfirmations || 1,
+    })
+    console.log("-------------------------------")
+    if (
+        !developmentChains.includes(network.name) &&
+        process.env.ETHERSCAN_API_KEY
+    ) {
+        log("Verifying...")
+        await verify(randomIpfsNft.address, args)
+    }
 }
 
 async function handleTokenUris() {
