@@ -67,6 +67,7 @@ contract RandomIPFSNFT is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
         // this ensures that the requester/NFT minter will actually be the owner of the NFT, not a Chainlink node
         s_requestIdToSender[requestId] = msg.sender;
         emit NftRequested(requestId, msg.sender);
+        return requestId;
     }
 
     function fulfillRandomWords(

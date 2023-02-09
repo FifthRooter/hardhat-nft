@@ -32,16 +32,14 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
 
-    let VRFCoordinatorV2Address
+    let VRFCoordinatorV2Address, VRFCoordinatorV2Mock
 
     if (process.env.UPLOAD_TO_PINATA == "true") {
         tokenUris = await handleTokenUris()
     }
 
     if (developmentChains.includes(network.name)) {
-        const VRFCoordinatorV2Mock = await ethers.getContract(
-            "VRFCoordinatorV2Mock"
-        )
+        VRFCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
         VRFCoordinatorV2Address = VRFCoordinatorV2Mock.address
         const tx = await VRFCoordinatorV2Mock.createSubscription()
         const txReceipt = await tx.wait(1)
@@ -67,6 +65,14 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         log: true,
         waitConfirmations: network.config.blockConfirmations || 1,
     })
+
+    if (developmentChains.includes(network.name)) {
+        await VRFCoordinatorV2Mock.addConsumer(
+            subscriptionId,
+            randomIpfsNft.address
+        )
+    }
+
     console.log("-------------------------------")
     if (
         !developmentChains.includes(network.name) &&
