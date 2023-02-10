@@ -28,7 +28,7 @@ const {
 
           describe("constructor", function () {
               it("sets starting values correctly", async function () {
-                  const dogTokenUriZero = await randomNFT.getDogTokenUris(0)
+                  const dogTokenUriZero = await randomNFT.getTokenUri(0)
                   const isInitialized = await randomNFT.getInitialized()
                   assert(dogTokenUriZero.includes("ipfs://"))
                   assert.equal(isInitialized, true)
@@ -55,9 +55,68 @@ const {
               })
           })
 
-          describe("fulfillRandomWords", function () {})
+          describe("fulfillRandomWords", function () {
+              it("mints NFT after random number is returned", async function () {
+                  await new Promise(async (resolve, reject) => {
+                      randomNFT.once("NftMinted", async () => {
+                          try {
+                              const tokenUri = await randomNFT.getTokenUri("0")
+                              const tokenCounter =
+                                  await randomNFT.getTokenCounter()
+                              assert.equal(
+                                  tokenUri.toString().includes("ipfs://"),
+                                  true
+                              )
+                              assert.equal(tokenCounter.toString(), "1")
+                              resolve()
+                          } catch (e) {
+                              console.log(e)
+                              reject()
+                          }
+                      })
+                      try {
+                          mintFee = await randomNFT.getMintFee()
 
-          describe("getBreedFromModdedRng", function () {})
+                          const requestNftResponse = await randomNFT.requestNft(
+                              {
+                                  value: mintFee.toString(),
+                              }
+                          )
+                          const requestNftReceipt =
+                              await requestNftResponse.wait(1)
+                          await vrfCoordinatorV2Mock.fulfillRandomWords(
+                              requestNftReceipt.events[1].args.requestId,
+                              randomNFT.address
+                          )
+                      } catch (e) {
+                          console.log(e)
+                          reject()
+                      }
+                  })
+              })
+          })
 
-          describe("withdraw", function () {})
+          describe("getBreedFromModdedRng", function () {
+              it("should return pug if moddedRng < 10", async function () {
+                  const expectedValue = await randomNFT.getBreedFromModdedRng(7)
+                  assert.equal(expectedValue, 0)
+              })
+              it("should return shiba-inu if moddedRng between 10 - 39", async function () {
+                  const expectedValue = await randomNFT.getBreedFromModdedRng(
+                      11
+                  )
+                  assert.equal(expectedValue, 1)
+              })
+              it("should return st. bernard if moddedRng between 40 and 99", async function () {
+                  const expectedValue = await randomNFT.getBreedFromModdedRng(
+                      41
+                  )
+                  assert.equal(expectedValue, 2)
+              })
+              it("should revert if moddedRng > 99", async function () {
+                  await expect(
+                      randomNFT.getBreedFromModdedRng(100)
+                  ).to.be.revertedWith("RandomIPFSNFT__RangeOutOfBounds()")
+              })
+          })
       })
