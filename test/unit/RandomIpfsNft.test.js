@@ -27,7 +27,7 @@ const {
           })
 
           describe("constructor", function () {
-              it("initializes contract correctly", async function () {
+              it("sets starting values correctly", async function () {
                   const dogTokenUriZero = await randomNFT.getDogTokenUris(0)
                   const isInitialized = await randomNFT.getInitialized()
                   assert(dogTokenUriZero.includes("ipfs://"))
@@ -36,20 +36,22 @@ const {
           })
 
           describe("requestNft", function () {
-              it("reverts when not enough ETH to mint NFT", async function () {
+              it("reverts if payment is not sent with the request", async function () {
                   await expect(randomNFT.requestNft()).to.be.revertedWith(
                       "RandomIPFSNFT__NeedMoreETHSent()"
                   )
               })
-              it.skip("correctly maps requestId to address of NFT owner", async function () {
-                  const requestId = await randomNFT.requestNft({
-                      value: mintFee,
-                  })
-                  const senderAddress = await randomNFT.s_requestIdToSender(
-                      requestId.value
-                  )
-                  console.log(senderAddress)
-                  assert.equal(senderAddress, deployer)
+              it("reverts if payment is less than the mint fee", async function () {
+                  await expect(
+                      randomNFT.requestNft({
+                          value: mintFee.sub(ethers.utils.parseEther("0.001")),
+                      })
+                  ).to.be.revertedWith("RandomIPFSNFT__NeedMoreETHSent()")
+              })
+              it("emits an event and kicks off a random word generator", async function () {
+                  await expect(
+                      randomNFT.requestNft({ value: mintFee.toString() })
+                  ).to.emit(randomNFT, "NftRequested")
               })
           })
 
