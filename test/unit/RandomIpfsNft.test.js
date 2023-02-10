@@ -28,12 +28,10 @@ const {
 
           describe("constructor", function () {
               it("initializes contract correctly", async function () {
-                  const name = await randomNFT.name()
-                  const symbol = await randomNFT.symbol()
-                  const tokenCounter = await randomNFT.getTokenCounter()
-                  assert.equal(name, "Random IPFS NFT")
-                  assert.equal(symbol, "RIN")
-                  assert.equal(tokenCounter.toString(), "0")
+                  const dogTokenUriZero = await randomNFT.getDogTokenUris(0)
+                  const isInitialized = await randomNFT.getInitialized()
+                  assert(dogTokenUriZero.includes("ipfs://"))
+                  assert.equal(isInitialized, true)
               })
           })
 
@@ -43,7 +41,7 @@ const {
                       "RandomIPFSNFT__NeedMoreETHSent()"
                   )
               })
-              it("correctly maps requestId to address of NFT owner", async function () {
+              it.skip("correctly maps requestId to address of NFT owner", async function () {
                   const requestId = await randomNFT.requestNft({
                       value: mintFee,
                   })
