@@ -18,15 +18,45 @@ const lowTokenURI =
           let dynamicSvgNft, deployer, mockV3Aggregator
 
           beforeEach(async () => {
-              deployer = (await getNamedAccounts()).deployer
-              await deployments.fixture(["mocks", "dynamicsvg"])
+              //   deployer = (await getNamedAccounts()).deployer
+              accounts = await ethers.getSigners()
+              deployer = accounts[0]
+              await deployments.fixture(["mocks", "dynamicnft"])
               dynamicSvgNft = await ethers.getContract("DynamicSVGNFT")
               mockV3Aggregator = await ethers.getContract("MockV3Aggregator")
           })
 
           describe("constructor", () => {
               it("sets starting values correctly", async function () {
-                  const lowSvg = await dynamicSvgNft
+                  const lowSVG = await dynamicSvgNft.getLowSVG()
+                  const highSVG = await dynamicSvgNft.getHighSVG()
+                  const priceFeed = await dynamicSvgNft.getPriceFeed()
+                  assert.equal(lowSVG, lowSVGImageURI)
+                  assert.equal(highSVG, highSVGImageURI)
+                  assert.equal(priceFeed, mockV3Aggregator.address)
+              })
+          })
+
+          describe("mintNft", () => {
+              it("emits an event and mints the NFT", async function () {
+                  const highValue = ethers.utils.parseEther("1")
+                  await expect(dynamicSvgNft.mintNFT(highValue)).to.emit(
+                      dynamicSvgNft,
+                      "CreatedNFT"
+                  )
+                  const tokenCounter = await dynamicSvgNft.getTokenCounter()
+                  assert.equal(tokenCounter.toString(), "1")
+                  const tokenURI = await dynamicSvgNft.tokenURI(0)
+                  // Initial Price Feed value is 2000ETH, and the High Value for NFT is set to 1ETH => highTokenUri
+                  assert.equal(tokenURI, highTokenURI)
+              })
+
+              it("shifts the token uri value to lower when the price doesn't surpass the highvalue", async function () {
+                  const highValue = ethers.utils.parseEther("1000000000")
+                  const txResponse = await dynamicSvgNft.mintNFT(highValue)
+                  txResponse.wait(1)
+                  const tokenURI = await dynamicSvgNft.tokenURI(0)
+                  assert.equal(tokenURI, lowTokenURI)
               })
           })
       })

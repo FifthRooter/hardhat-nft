@@ -21,6 +21,8 @@ contract DynamicSVGNFT is ERC721 {
 
     event CreatedNFT(uint256 indexed tokenId, int256 highValue);
 
+    error ERC721Metadata__URI_QueryFor_NonExistentToken();
+
     constructor(
         address priceFeedAddress,
         string memory lowSVG,
@@ -34,9 +36,9 @@ contract DynamicSVGNFT is ERC721 {
 
     function mintNFT(int256 highValue) public {
         s_tokenIdToHighValue[s_tokenCounter] = highValue;
-        s_tokenCounter = s_tokenCounter + 1;
         _safeMint(msg.sender, s_tokenCounter);
         emit CreatedNFT(s_tokenCounter, highValue);
+        s_tokenCounter = s_tokenCounter + 1;
     }
 
     function svgToImageUri(
@@ -56,8 +58,10 @@ contract DynamicSVGNFT is ERC721 {
 
     function tokenURI(
         uint256 tokenId
-    ) public view override returns (string memory) {
-        require(_exists(tokenId), "URI query for non-existant token");
+    ) public view virtual override returns (string memory) {
+        if (!_exists(tokenId)) {
+            revert ERC721Metadata__URI_QueryFor_NonExistentToken();
+        }
         // string memory imageUri = "hi!";
         (, int256 price, , , ) = i_priceFeed.latestRoundData();
         string memory imageURI = i_lowImageUri;
@@ -71,10 +75,10 @@ contract DynamicSVGNFT is ERC721 {
                     Base64.encode(
                         bytes(
                             abi.encodePacked(
-                                '{"name":',
-                                name(),
-                                ', "description": "An NFT that changes based on Chainlink Feed", ',
-                                '"attributes: [{"trait_type": "coolness", "value": 100}], "image": "',
+                                '{"name":"',
+                                name(), // You can add whatever name here
+                                '", "description":"An NFT that changes based on the Chainlink Feed", ',
+                                '"attributes": [{"trait_type": "coolness", "value": 100}], "image":"',
                                 imageURI,
                                 '"}'
                             )
