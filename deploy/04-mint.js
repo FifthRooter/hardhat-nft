@@ -15,8 +15,16 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     const mintFee = await randomIPFSNFT.getMintFee()
 
     await new Promise(async (resolve, reject) => {
-        setTimeout(resolve, 300000) // 5min
+        setTimeout(
+            () => reject("TimeoutL 'NFTMinted' event did not fire"),
+            300000
+        )
         randomIPFSNFT.once("NFTMinted", async function () {
+            console.log(
+                `Random IPFS NFT index 0 tokenURI: ${await randomIPFSNFT.tokenURI(
+                    0
+                )}`
+            )
             resolve()
         })
         const randomIPFSNFTMintTx = await randomIPFSNFT.requestNFT({
@@ -36,9 +44,6 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
             )
         }
     })
-    console.log(
-        `Random IPFS NFT index 0 tokenURI: ${await randomIPFSNFT.tokenURI(0)}`
-    )
 
     /* Dynamic SVG NFT */
     const highValue = ethers.utils.parseEther("4000")
@@ -51,3 +56,5 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         `Dynamic SVG NFT index 0 tokenURI: ${await dynamicSvgNft.tokenURI(0)}`
     )
 }
+
+module.exports.tags = ["all", "mint"]

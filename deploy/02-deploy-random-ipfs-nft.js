@@ -25,14 +25,14 @@ let tokenUris = [
     "ipfs://QmZYmH5iDbD6v3U2ixoVAjioSzvWJszDzYdbeCLquGSpVm",
 ]
 
-const FUND_AMOUNT = ethers.utils.parseEther("10") // 10 LINK
+const FUND_AMOUNT = "1000000000000000000000" // 10 LINK
 
 module.exports = async function ({ getNamedAccounts, deployments }) {
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
 
-    let VRFCoordinatorV2Address, VRFCoordinatorV2Mock
+    let VRFCoordinatorV2Address, VRFCoordinatorV2Mock, subscriptionId
 
     if (process.env.UPLOAD_TO_PINATA == "true") {
         tokenUris = await handleTokenUris()
@@ -46,8 +46,8 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         subscriptionId = txReceipt.events[0].args.subId
         await VRFCoordinatorV2Mock.fundSubscription(subscriptionId, FUND_AMOUNT)
     } else {
-        VRFCoordinatorV2Address = networkConfig[chainId].VRFCoordinatorV2
-        subscriptionId = networkConfig[chainId].subscription
+        VRFCoordinatorV2Address = networkConfig[chainId].vrfCoordinatorV2
+        subscriptionId = networkConfig[chainId].subscriptionId
     }
 
     const args = [

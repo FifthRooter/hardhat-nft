@@ -9,7 +9,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     const args = []
     const basicNft = await deploy("BasicNFT", {
         from: deployer,
-        args,
+        args: args,
         log: true,
         waitConfirmations: network.config.blockConfirmations | 1,
     })
@@ -19,8 +19,8 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         process.env.ETHERSCAN_API_KEY
     ) {
         log("Verifying...")
-        await verify(basicNft.address, arguments)
+        await verify(basicNft.address, args)
     }
 }
 
-module.exports.tags = ["basicnft"]
+module.exports.tags = ["basicnft", "main"]
