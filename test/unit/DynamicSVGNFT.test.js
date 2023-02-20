@@ -58,5 +58,22 @@ const lowTokenURI =
                   const tokenURI = await dynamicSvgNft.tokenURI(0)
                   assert.equal(tokenURI, lowTokenURI)
               })
+
+              it("shifts the tokenURI when the price changes", async function () {
+                  const highValue = ethers.utils.parseUnits("5", "ether")
+                  const tx = await dynamicSvgNft.mintNFT(highValue.toString())
+                  await tx.wait(1)
+                  const contractTokenURI = await dynamicSvgNft.tokenURI("0")
+                  assert.equal(contractTokenURI.toString(), highTokenURI)
+                  const lowValue = ethers.utils.parseUnits("1", "ether")
+                  const updateAnswerTx = await mockV3Aggregator.updateAnswer(
+                      lowValue.toString()
+                  )
+                  updateAnswerTx.wait(1)
+                  const updatedContractTokenURI = await dynamicSvgNft.tokenURI(
+                      "0"
+                  )
+                  assert.equal(lowTokenURI, updatedContractTokenURI.toString())
+              })
           })
       })

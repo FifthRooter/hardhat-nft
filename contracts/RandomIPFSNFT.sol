@@ -36,8 +36,8 @@ contract RandomIPFSNFT is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
     bool private s_initialized;
 
     // Events
-    event NftRequested(uint256 indexed requestId, address requester);
-    event NftMinted(Breed dogBreed, address minter);
+    event NFTRequested(uint256 indexed requestId, address requester);
+    event NFTMinted(Breed dogBreed, address minter);
 
     constructor(
         address vrfCoordinatorV2,
@@ -56,7 +56,7 @@ contract RandomIPFSNFT is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
         i_mintFee = mintFee;
     }
 
-    function requestNft() public payable returns (uint256 requestId) {
+    function requestNFT() public payable returns (uint256 requestId) {
         if (msg.value < i_mintFee) {
             revert RandomIPFSNFT__NeedMoreETHSent();
         }
@@ -69,7 +69,7 @@ contract RandomIPFSNFT is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
         );
         // this ensures that the requester/NFT minter will actually be the owner of the NFT, not a Chainlink node
         s_requestIdToSender[requestId] = msg.sender;
-        emit NftRequested(requestId, msg.sender);
+        emit NFTRequested(requestId, msg.sender);
         return requestId;
     }
 
@@ -84,7 +84,7 @@ contract RandomIPFSNFT is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
         s_tokenCounter = s_tokenCounter + 1;
         _safeMint(dogOwner, newTokenId);
         _setTokenURI(newTokenId, s_dogTokenUris[uint256(dogBreed)]);
-        emit NftMinted(dogBreed, dogOwner);
+        emit NFTMinted(dogBreed, dogOwner);
     }
 
     function withdraw() public onlyOwner {

@@ -35,30 +35,30 @@ const {
               })
           })
 
-          describe("requestNft", function () {
+          describe("requestNFT", function () {
               it("reverts if payment is not sent with the request", async function () {
-                  await expect(randomNFT.requestNft()).to.be.revertedWith(
+                  await expect(randomNFT.requestNFT()).to.be.revertedWith(
                       "RandomIPFSNFT__NeedMoreETHSent()"
                   )
               })
               it("reverts if payment is less than the mint fee", async function () {
                   await expect(
-                      randomNFT.requestNft({
+                      randomNFT.requestNFT({
                           value: mintFee.sub(ethers.utils.parseEther("0.001")),
                       })
                   ).to.be.revertedWith("RandomIPFSNFT__NeedMoreETHSent()")
               })
               it("emits an event and kicks off a random word generator", async function () {
                   await expect(
-                      randomNFT.requestNft({ value: mintFee.toString() })
-                  ).to.emit(randomNFT, "NftRequested")
+                      randomNFT.requestNFT({ value: mintFee.toString() })
+                  ).to.emit(randomNFT, "NFTRequested")
               })
           })
 
           describe("fulfillRandomWords", function () {
               it("mints NFT after random number is returned", async function () {
                   await new Promise(async (resolve, reject) => {
-                      randomNFT.once("NftMinted", async () => {
+                      randomNFT.once("NFTMinted", async () => {
                           try {
                               const tokenUri = await randomNFT.getTokenUri("0")
                               const tokenCounter =
